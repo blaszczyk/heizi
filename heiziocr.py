@@ -64,14 +64,14 @@ def detect(digit):
 			return '9'
 	return ' '
 	
-def scan(fileName, call):
+def scan(fileName, cali):
 	image = cv2.imread(fileName)
 	image = cv2.resize(image, (int(image.shape[1] * 500 / image.shape[0]), 500))
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	image = cv2.GaussianBlur(image, (25, 25), 0)
 	image = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 149,1)
 	
-	image = image[call[0]:call[1], call[2]:call[3]]
+	image = image[cali[0]:cali[1], cali[2]:cali[3]]
 	image = cv2.resize(image, (150, 100))
 	d1 = detect(image[:,0:50])
 	d2 = detect(image[:,50:100])

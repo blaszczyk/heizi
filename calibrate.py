@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 from picamera import PiCamera
 from time import sleep
 import cv2
@@ -18,52 +17,32 @@ def findtemplate(image, scale):
 	print(scale, max_val)
 	return max_val , ( x1, x2, y1, y2 )
 
-def riseup(image, initscale, initacc, initcalli, step):
-	refacc, refcalli = initacc, initcalli
+def riseup(image, initscale, initacc, initcali, step):
+	refacc, refcali = initacc, initcali
 	scale = initscale
 	while True:
 		scale += step
-		acc, calli = findtemplate(image, scale)
+		acc, cali = findtemplate(image, scale)
 		if acc > refacc:
-			refacc, refcalli = acc, calli
+			refacc, refcali = acc, cali
 		else:
-			return scale - step, refacc, refcalli
+			return scale - step, refacc, refcali
 
 
-def callibrate(fileName):
+def calibrate(fileName):
 	image = cv2.imread(fileName)
 	image = cv2.resize(image, (int(image.shape[1] * 500 / image.shape[0]), 500))
 	image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 	image = cv2.GaussianBlur(image, (25, 25), 0)
 	image = cv2.adaptiveThreshold(image,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 149,1)
 	
-	acc, calli = findtemplate(image, 1)
+	acc, cali = findtemplate(image, 1)
 	scale = 1
 	if acc > 0.6:
-		scale, acc, calli = riseup(image, scale, acc, calli, 0.05)
-		scale, acc, calli = riseup(image, scale, acc, calli, -0.05)
-		scale, acc, calli = riseup(image, scale, acc, calli, 0.01)
-		scale, acc, calli = riseup(image, scale, acc, calli, -0.01)
+		scale, acc, cali = riseup(image, scale, acc, cali, 0.05)
+		scale, acc, cali = riseup(image, scale, acc, cali, -0.05)
+		scale, acc, cali = riseup(image, scale, acc, cali, 0.01)
+		scale, acc, cali = riseup(image, scale, acc, cali, -0.01)
 		if acc > 0.9:
-			return '%d:%d:%d:%d' % calli
+			return cali
 	return None
-
-camera = PiCamera()
-camera.rotation = 270
-print('starting camera')
-camera.start_preview()
-sleep(5)
-for i in range(120):
-	sleep(1)
-	file = 'img/'  + str(int(time.time())) + '.jpg'
-	print('capturing', file)
-	camera.capture(file)
-	callibration = callibrate(file)
-	print('callibration', callibration)
-	if callibration:
-		with open('callibration', 'w') as file:
-			file.write(callibration)
-		break
-
-print('closing camera')
-camera.stop_preview()

@@ -9,6 +9,7 @@ import psycopg2
 import re
 from heizidb import HeiziDb
 from heiziocr import scan
+from calibrate import calibrate
 
 numregex = re.compile(r'[\s\d]\d\d')
 
@@ -30,18 +31,25 @@ def persist(timestamp, key, value):
 		if heizidb is not None:
 			heizidb.close()
 
+def readCalibration():
+	if os.path.exists("calibration"):
+		with open('calibration') as file:
+			cali = file.read().split(':')
+			return [int(s) for s in cali]
+	else:
+		return None
 
-call = None
-with open('callibration') as file:
-	call = file.read(call).split(':')
-	call = [int(s) for s in call]
-
+def writeCalibration(cali):
+	with open('calibration', 'w') as file:
+		file.write('%d:%d:%d:%d' % cali)
 
 camera = PiCamera()
 camera.rotation = 270
 print('starting camera')
 camera.start_preview()
 
+lasttimestamp = {}
+cali = readCalibration()
 try:
 	sleep(4)
 	lastkey = None
@@ -51,15 +59,36 @@ try:
 		timestamp = int(time.time())
 		file = 'img/' + str(timestamp) + '.jpg'
 		camera.capture(file)
-		result = scan(file, call)
-		print('detected',result)
-		if result in ['tag', 'ty ', 'po ', 'pu ', 'tur']:
-			lastkey = result
-		elif lastkey:
-			if numregex.match(result):
-				persist(timestamp, lastkey, int(result))
-			lastkey = None
-		if not os.path.exists("keepimg"):
+
+		if os.path.exists("calibrate"):
+			os.remove('calibrate')
+			print('external calibration request')
+			cali = None
+			
+		if cali:
+			result = scan(file, cali)
+			print('detected',result)
+			
+			if result in ['tag', 'ty ', 'po ', 'pu ', 'tur']:
+				lastkey = result
+			elif lastkey:
+				if numregex.match(result):
+					persist(timestamp, lastkey, int(result))
+					lasttimestamp[lastkey] = timestamp
+				lastkey = None
+
+			for key, lasttime in lasttimestamp.items():
+				if timestamp - lasttime > 150:
+					print('no recent ' + key + ' data. triggering calibration')
+					cali = None
+					
+		else:
+			cali = calibrate(file)
+			if cali:
+				print('calibration', cali)
+				writeCalibration(cali)
+
+		if not os.path.exists('keepimg'):
 			os.remove(file)
 
 except KeyboardInterrupt:
