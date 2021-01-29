@@ -48,17 +48,18 @@ class Server(BaseHTTPRequestHandler):
 		self.end_headers()
 
 	def do_GET(self):
+		self._set_response()
 		path = str(self.path)
-		print("GET request,\nPath: %s\n", path)
-		if path == '/':
+		response = 'Hello Heizi!'
+		if path == '/latest':
 			data = querylast()
-			response = bytes(json.dumps(data), 'utf-8')
-			self.wfile.write(response)
-		else:
-			self.send_response(404)
+			response = json.dumps(data)
+		elif path == '/ping':
+			response = '"pong"'
+		self.wfile.write(bytes(response, 'utf-8'))
+		
 
-
-server_address = ('', 80)
+server_address = ('', 4321)
 httpd = HTTPServer(server_address, Server)
 print('Starting http...')
 try:

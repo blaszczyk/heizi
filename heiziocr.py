@@ -7,7 +7,7 @@ numregex = re.compile(r'[\s\d]\d\d')
 
 def avrg(sector):
 	mean = cv2.mean(sector)[0]
-	if mean < 50:
+	if mean < 70:
 		return 0
 	if mean > 135:
 		return 1
@@ -21,8 +21,8 @@ def detect(digit):
 	b3 = avrg(digit[30:40, 38:43])
 	
 	b4 = avrg(digit[45:55, 20:30])
-	b5 = avrg(digit[60:80, 10:20])
-	b6 = avrg(digit[60:80, 35:40])
+	b5 = avrg(digit[60:70, 10:20])
+	b6 = avrg(digit[60:70, 35:40])
 	
 	bs = (b1,b2,b3,b4,b5,b6)
 	if c1 < 150:

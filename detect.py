@@ -59,6 +59,9 @@ try:
 			if numregex.match(result):
 				persist(timestamp, lastkey, int(result))
 			lastkey = None
+		if not os.path.exists("keepimg"):
+			os.remove(file)
+
 except KeyboardInterrupt:
 	pass
 

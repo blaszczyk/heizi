@@ -40,8 +40,8 @@ def callibrate(fileName):
 	acc, calli = findtemplate(image, 1)
 	scale = 1
 	if acc > 0.6:
-		scale, acc, calli = riseup(image, scale, acc, calli, 0.1)
-		scale, acc, calli = riseup(image, scale, acc, calli, -0.1)
+		scale, acc, calli = riseup(image, scale, acc, calli, 0.05)
+		scale, acc, calli = riseup(image, scale, acc, calli, -0.05)
 		scale, acc, calli = riseup(image, scale, acc, calli, 0.01)
 		scale, acc, calli = riseup(image, scale, acc, calli, -0.01)
 		if acc > 0.9:
