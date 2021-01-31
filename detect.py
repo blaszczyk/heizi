@@ -13,7 +13,6 @@ from calibrate import calibrate
 
 numregex = re.compile(r'[\s\d]\d\d')
 
-
 def persist(timestamp, key, value):
 	print('persisting', timestamp, key, value)
 	heizidb = None
@@ -32,7 +31,7 @@ def persist(timestamp, key, value):
 			heizidb.close()
 
 def readCalibration():
-	if os.path.exists("calibration"):
+	if os.path.exists('calibration'):
 		with open('calibration') as file:
 			cali = file.read().split(':')
 			return [int(s) for s in cali]
@@ -48,11 +47,13 @@ camera.rotation = 270
 print('starting camera')
 camera.start_preview()
 
-lasttimestamp = {}
 cali = readCalibration()
 try:
 	sleep(4)
 	lastkey = None
+	lasttur = int(time.time())
+	lasttimes = {'tag': lasttur}
+	lastcalistart = None
 
 	while True:
 		sleep(1)
@@ -68,25 +69,46 @@ try:
 		if cali:
 			result = scan(file, cali)
 			print('detected',result)
-			
-			if result in ['tag', 'ty ', 'po ', 'pu ', 'tur']:
+
+			if result == 'tur':
+				persist(timestamp, result, 0)
+				lasttur = timestamp
+				lasttimes = {}
+			elif result == ' oo':
+				lastkey = 'tag'
+			elif result in ['tag', 'ty ', 'po ', 'pu ']:
 				lastkey = result
 			elif lastkey:
 				if numregex.match(result):
 					persist(timestamp, lastkey, int(result))
-					lasttimestamp[lastkey] = timestamp
+					lasttimes[lastkey] = timestamp
 				lastkey = None
 
-			for key, lasttime in lasttimestamp.items():
-				if timestamp - lasttime > 150:
-					print('no recent ' + key + ' data. triggering calibration')
+			elif timestamp - lasttur > 30:
+				lasttimeall = 0
+				for key, lasttime in lasttimes.items():
+					lasttimeall = max(lasttime, lasttimeall)
+					if timestamp - lasttime > 60:
+						print('no recent ' + key + ' data. triggering calibration')
+						cali = None
+				if timestamp - lasttimeall > 30:
+					print('no reasonable data. triggering calibration')
 					cali = None
 					
-		else:
+		if not cali:
+			if not lastcalistart:
+				lastcalistart = timestamp
+			elif timestamp - lastcalistart > 120:
+				os.remove('calibration')
+				print('calibration failed for 2 minutes. terminating process.')
+				break
 			cali = calibrate(file)
 			if cali:
 				print('calibration', cali)
+				lastcalistart = None
 				writeCalibration(cali)
+				lasttimes = {'tag': timestamp}
+				lastkey = 'tag'
 
 		if not os.path.exists('keepimg'):
 			os.remove(file)

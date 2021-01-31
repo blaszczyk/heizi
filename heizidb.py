@@ -1,4 +1,3 @@
-#!/usr/bin/python3
 import psycopg2
 
 from dbconfig import config

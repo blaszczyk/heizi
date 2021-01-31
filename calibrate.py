@@ -1,9 +1,5 @@
-from picamera import PiCamera
-from time import sleep
 import cv2
-import os
 import numpy as np
-import time
 
 roottemplate = cv2.imread('tagref.bmp')
 roottemplate = cv2.cvtColor(roottemplate, cv2.COLOR_BGR2GRAY)

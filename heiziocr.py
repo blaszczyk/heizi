@@ -3,8 +3,6 @@ import os
 import numpy as np
 import re
 
-numregex = re.compile(r'[\s\d]\d\d')
-
 def avrg(sector):
 	mean = cv2.mean(sector)[0]
 	if mean < 70:
@@ -40,8 +38,8 @@ def detect(digit):
 			return 'g'
 		if bs == (1,0,0,0,1,1):
 			return 'u'
-		if bs == (0,0,0,1,0,1):
-			return 'u'
+		if bs == (0,0,0,1,1,0):
+			return 'r'
 		if bs == (1,1,1,0,1,1):
 			return '0'
 		if bs == (0,0,1,0,0,1):
