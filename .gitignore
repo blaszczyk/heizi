@@ -2,3 +2,5 @@
 pidata/
 res/
 callibration
+__pycache__/
+dbconfig.py

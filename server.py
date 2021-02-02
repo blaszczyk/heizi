@@ -1,7 +1,9 @@
 #!/usr/bin/python3
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
+import time
 from heizidb import HeiziDb
+import urllib.parse
 
 def querylast():
 	heizidb = None
@@ -32,11 +34,32 @@ def querylast():
 		mintime = min(mintime, row[0])
 		
 		result['time'] = mintime
-		print("queries returned %s", str(result))
 		
 		return result
-#	except (Exception, psycopg2.DatabaseError) as error:
-#		print('sqlerror', error)
+	finally:
+		if heizidb is not None:
+			heizidb.close()
+
+def queryrange(mintime, maxtime):
+	heizidb = None
+	try:
+		heizidb = HeiziDb()
+		cur = heizidb.cur
+		selectsql = "SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;"
+		result = {}
+
+		cur.execute(selectsql, (mintime, maxtime,))
+		for row in cur.fetchall():
+			time = row[0]
+			key = row[1].strip()
+			value = row[2]
+			dataset = [time, value]
+			if not key in result:
+				result[key] = [dataset]
+			else:
+				result[key].append(dataset)
+
+		return result
 	finally:
 		if heizidb is not None:
 			heizidb.close()
@@ -49,13 +72,24 @@ class Server(BaseHTTPRequestHandler):
 
 	def do_GET(self):
 		self._set_response()
-		path = str(self.path)
+		parsedpath = urllib.parse.urlparse(self.path)
+		path = parsedpath.path
+		query = urllib.parse.parse_qs(parsedpath.query)
 		response = 'Hello Heizi!'
+
 		if path == '/latest':
 			data = querylast()
 			response = json.dumps(data)
+
+		elif path == '/range':
+			maxtime = int(query['maxtime'][0]) if 'maxtime' in query else int(time.time())
+			mintime = int(query['mintime'][0]) if 'mintime' in query else maxtime - 10800
+			data = queryrange(mintime, maxtime)
+			response = json.dumps(data)
+
 		elif path == '/ping':
 			response = '"pong"'
+
 		self.wfile.write(bytes(response, 'utf-8'))
 		
 
