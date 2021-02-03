@@ -27,10 +27,10 @@ try:
 		currenttime = int(time.time())
 		lastdatatime = querylasttime()
 		age = currenttime - lastdatatime
-		if age > 180 and os.path.exists('calibration'):
+		if age > 180:
 			print('no data since 3 minutes. rebooting device.')
 			os.system('sudo shutdown -r now')
 		else:
-			print('last data age: ' + str(age) + ' sec')
+			print('last data age', age, 'sec')
 except KeyboardInterrupt:
 	pass

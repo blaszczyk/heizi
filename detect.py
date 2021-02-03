@@ -42,6 +42,9 @@ def writeCalibration(cali):
 	with open('calibration', 'w') as file:
 		file.write('%d:%d:%d:%d' % cali)
 
+def newTimes(time):
+	return {'tag': time, 'ty': time, 'po': time, 'pu': time,}
+
 camera = PiCamera()
 camera.rotation = 270
 print('starting camera')
@@ -52,7 +55,7 @@ try:
 	sleep(4)
 	lastkey = None
 	lasttur = int(time.time())
-	lasttimes = {'tag': lasttur}
+	lasttimes = newTimes(lasttur)
 	lastcalistart = None
 
 	while True:
@@ -68,28 +71,28 @@ try:
 			
 		if cali:
 			result = scan(file, cali)
-			print('detected',result)
+			print('detected', result)
 
 			if result == 'tur':
-				persist(timestamp, result, 0)
+				persist(timestamp, result, None)
 				lasttur = timestamp
-				lasttimes = {}
+				lasttimes = newTimes(lasttur)
 			elif result == ' oo':
 				lastkey = 'tag'
 			elif result in ['tag', 'ty ', 'po ', 'pu ']:
-				lastkey = result
+				lastkey = result.strip()
 			elif lastkey:
 				if numregex.match(result):
 					persist(timestamp, lastkey, int(result))
 					lasttimes[lastkey] = timestamp
 				lastkey = None
 
-			elif timestamp - lasttur > 30:
+			elif timestamp - lasttur > 60:
 				lasttimeall = 0
 				for key, lasttime in lasttimes.items():
 					lasttimeall = max(lasttime, lasttimeall)
 					if timestamp - lasttime > 60:
-						print('no recent ' + key + ' data. triggering calibration')
+						print('no recent' , key , 'data. triggering calibration')
 						cali = None
 				if timestamp - lasttimeall > 30:
 					print('no reasonable data. triggering calibration')
@@ -99,15 +102,15 @@ try:
 			if not lastcalistart:
 				lastcalistart = timestamp
 			elif timestamp - lastcalistart > 120:
-				os.remove('calibration')
-				print('calibration failed for 2 minutes. terminating process.')
-				break
+				print('calibration fails since' , timestamp - lastcalistart , 'seconds.')
+				sleep(300)
+				lastcalistart = None
 			cali = calibrate(file)
 			if cali:
 				print('calibration', cali)
 				lastcalistart = None
 				writeCalibration(cali)
-				lasttimes = {'tag': timestamp}
+				lasttimes = newTimes(timestamp)
 				lastkey = 'tag'
 
 		if not os.path.exists('keepimg'):

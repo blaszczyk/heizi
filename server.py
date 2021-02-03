@@ -18,17 +18,17 @@ def querylast():
 		result['tag'] = row[2]
 		mintime = row[0]
 		
-		cur.execute(selectsql, ('pu ',))
+		cur.execute(selectsql, ('pu',))
 		row = cur.fetchone()
 		result['pu'] = row[2]
 		mintime = min(mintime, row[0])
 		
-		cur.execute(selectsql, ('po ',))
+		cur.execute(selectsql, ('po',))
 		row = cur.fetchone()
 		result['po'] = row[2]
 		mintime = min(mintime, row[0])
 		
-		cur.execute(selectsql, ('ty ',))
+		cur.execute(selectsql, ('ty',))
 		row = cur.fetchone()
 		result['ty'] = row[2]
 		mintime = min(mintime, row[0])
@@ -46,17 +46,17 @@ def queryrange(mintime, maxtime):
 		heizidb = HeiziDb()
 		cur = heizidb.cur
 		selectsql = "SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;"
-		result = {}
+		result = {'tag': [], 'ty': [], 'po': [], 'pu': [], 'tur': []}
 
 		cur.execute(selectsql, (mintime, maxtime,))
 		for row in cur.fetchall():
 			time = row[0]
 			key = row[1].strip()
 			value = row[2]
-			dataset = [time, value]
-			if not key in result:
-				result[key] = [dataset]
-			else:
+			if key == 'tur':
+				result[key].append(time)
+			elif key in result:
+				dataset = [time, value]
 				result[key].append(dataset)
 
 		return result
