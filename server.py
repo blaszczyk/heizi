@@ -5,36 +5,46 @@ import time
 from heizidb import HeiziDb
 import urllib.parse
 
+def slope(rows):
+	t0 = rows[0][0]
+	n, st, sv, stt, stv = 0, 0, 0, 0, 0
+	for (tfull, v) in rows:
+		t = tfull - t0
+		if t > -300 or n < 2:
+			n += 1
+			st += t
+			sv += v
+			stt += t*t
+			stv += t*v
+	return (n * stv - st * sv) / (n * stt - st * st)
+
+def evalkey(key, cur, result):
+	selectsql = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'
+	cur.execute(selectsql, (key,))
+	rows = cur.fetchall()
+	firstrow = rows[0]
+	result[key] = firstrow[1]
+	result['d'+key] = slope(rows)
+	return firstrow[0]
+
 def querylast():
 	heizidb = None
 	try:
 		heizidb = HeiziDb()
 		cur = heizidb.cur
-		selectsql = "SELECT * FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;"
 		result = {}
 		
-		cur.execute(selectsql, ('tag',))
-		row = cur.fetchone()
-		result['tag'] = row[2]
-		mintime = row[0]
-		
-		cur.execute(selectsql, ('pu',))
-		row = cur.fetchone()
-		result['pu'] = row[2]
-		mintime = min(mintime, row[0])
-		
-		cur.execute(selectsql, ('po',))
-		row = cur.fetchone()
-		result['po'] = row[2]
-		mintime = min(mintime, row[0])
-		
-		cur.execute(selectsql, ('ty',))
-		row = cur.fetchone()
-		result['ty'] = row[2]
-		mintime = min(mintime, row[0])
-		
+		mintime = evalkey('tag', cur, result)
+		mintime = min(mintime, evalkey('ty', cur, result))
+		mintime = min(mintime, evalkey('po', cur, result))
+		mintime = min(mintime, evalkey('pu', cur, result))
 		result['time'] = mintime
-		
+
+		selectsql = 'SELECT time FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;'
+		cur.execute(selectsql, ('tur',))
+		row = cur.fetchone()
+		result['tur'] = row[0]
+
 		return result
 	finally:
 		if heizidb is not None:
@@ -45,7 +55,7 @@ def queryrange(mintime, maxtime):
 	try:
 		heizidb = HeiziDb()
 		cur = heizidb.cur
-		selectsql = "SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;"
+		selectsql = 'SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;'
 		result = {'tag': [], 'ty': [], 'po': [], 'pu': [], 'tur': []}
 
 		cur.execute(selectsql, (mintime, maxtime,))
