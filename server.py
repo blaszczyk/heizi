@@ -16,7 +16,7 @@ def slope(rows):
 			sv += v
 			stt += t*t
 			stv += t*v
-	return (n * stv - st * sv) / (n * stt - st * st)
+	return 60 * (n * stv - st * sv) / (n * stt - st * st) # degrees per minute
 
 def evalkey(key, cur, result):
 	selectsql = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'
