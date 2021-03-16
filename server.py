@@ -3,6 +3,7 @@ from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import time
 from heizidb import HeiziDb
+from heizibi import attach_message
 import urllib.parse
 
 def slope(rows):
@@ -45,6 +46,7 @@ def querylast():
 		row = cur.fetchone()
 		result['tur'] = row[0]
 
+		attach_message(result)
 		return result
 	finally:
 		if heizidb is not None:
