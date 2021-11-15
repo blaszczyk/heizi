@@ -1,6 +1,8 @@
 
 pidata/
 res/
-callibration
+calibration
 __pycache__/
 dbconfig.py
+deployconfig.py
+dist/

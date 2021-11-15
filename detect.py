@@ -91,7 +91,7 @@ try:
 				lasttimeall = 0
 				for key, lasttime in lasttimes.items():
 					lasttimeall = max(lasttime, lasttimeall)
-					if timestamp - lasttime > 60:
+					if timestamp - lasttime > 180:
 						print('no recent' , key , 'data. triggering calibration')
 						cali = None
 				if timestamp - lasttimeall > 30:
@@ -112,9 +112,14 @@ try:
 				writeCalibration(cali)
 				lasttimes = newTimes(timestamp)
 				lastkey = 'tag'
+			if not os.path.exists('keepimg'):
+				os.remove(file)
 
-		if not os.path.exists('keepimg'):
-			os.remove(file)
+		for filename in os.listdir('img'):
+			age = timestamp - int(filename[:filename.index('.')])
+			if age > 900:
+				file = os.path.join('img', filename)
+				os.remove(file)
 
 except KeyboardInterrupt:
 	pass

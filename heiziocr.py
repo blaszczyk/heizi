@@ -7,7 +7,7 @@ def avrg(sector):
 	mean = cv2.mean(sector)[0]
 	if mean < 70:
 		return 0
-	if mean > 135:
+	if mean > 100:
 		return 1
 	return -1
 
