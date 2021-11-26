@@ -2,9 +2,13 @@
 from http.server import BaseHTTPRequestHandler, HTTPServer
 import json
 import time
-from heizidb import HeiziDb
+from heizidb import query_heizi_db
 from heizibi import attach_message
 import urllib.parse
+
+SQL_SELECT_LAST_RANGE = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'
+SQL_SELECT_LAST_TIME = 'SELECT time FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;'
+SQL_SELECT_RANGE = 'SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;'
 
 def slope(rows):
 	t0 = rows[0][0]
@@ -19,49 +23,37 @@ def slope(rows):
 			stv += t*v
 	return 60 * (n * stv - st * sv) / (n * stt - st * st) # degrees per minute
 
-def evalkey(key, cur, result):
-	selectsql = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'
-	cur.execute(selectsql, (key,))
-	rows = cur.fetchall()
+def evalkey(key, cursor, result):
+	cursor.execute(SQL_SELECT_LAST_RANGE, (key,))
+	rows = cursor.fetchall()
 	firstrow = rows[0]
 	result[key] = firstrow[1]
 	result['d'+key] = slope(rows)
 	return firstrow[0]
 
 def querylast():
-	heizidb = None
-	try:
-		heizidb = HeiziDb()
-		cur = heizidb.cur
+	with query_heizi_db() as cursor:
 		result = {}
 		
-		mintime = evalkey('tag', cur, result)
-		mintime = min(mintime, evalkey('ty', cur, result))
-		mintime = min(mintime, evalkey('po', cur, result))
-		mintime = min(mintime, evalkey('pu', cur, result))
+		mintime = evalkey('tag', cursor, result)
+		mintime = min(mintime, evalkey('ty', cursor, result))
+		mintime = min(mintime, evalkey('po', cursor, result))
+		mintime = min(mintime, evalkey('pu', cursor, result))
 		result['time'] = mintime
 
-		selectsql = 'SELECT time FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;'
-		cur.execute(selectsql, ('tur',))
-		row = cur.fetchone()
+		cursor.execute(SQL_SELECT_LAST_TIME, ('tur',))
+		row = cursor.fetchone()
 		result['tur'] = row[0]
 
 		attach_message(result)
 		return result
-	finally:
-		if heizidb is not None:
-			heizidb.close()
 
 def queryrange(mintime, maxtime):
-	heizidb = None
-	try:
-		heizidb = HeiziDb()
-		cur = heizidb.cur
-		selectsql = 'SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;'
+	with query_heizi_db() as cursor:
 		result = {'tag': [], 'ty': [], 'po': [], 'pu': [], 'tur': []}
 
-		cur.execute(selectsql, (mintime, maxtime,))
-		for row in cur.fetchall():
+		cursor.execute(SQL_SELECT_RANGE, (mintime, maxtime,))
+		for row in cursor.fetchall():
 			time = row[0]
 			key = row[1].strip()
 			value = row[2]
@@ -72,9 +64,6 @@ def queryrange(mintime, maxtime):
 				result[key].append(dataset)
 
 		return result
-	finally:
-		if heizidb is not None:
-			heizidb.close()
 
 class Server(BaseHTTPRequestHandler):
 	def _set_response(self):

@@ -1,24 +1,31 @@
 import psycopg2
 
 from dbconfig import config
+from contextlib import contextmanager
 
-class HeiziDb():
+@contextmanager
+def query_heizi_db():
+	connection = psycopg2.connect(**config)
+	cursor = connection.cursor()
+	
+	try:
+		yield cursor
+	except (Exception, psycopg2.DatabaseError) as error:
+		print(error)
+	finally:
+		cursor.close()
+		connection.close()
 
-	conn = None
-	cur = None
-
-	def __init__(self):
-		self.conn = psycopg2.connect(**config)
-		self.cur = self.conn.cursor()
-		
-	def close(self):
-		if self.cur is not None:
-			self.cur.close()
-		if self.conn is not None:
-			self.conn.close()
-
-	def commit(self):
-		if self.cur is not None:
-			self.cur.close()
-		if self.conn is not None:
-			self.conn.commit()
+@contextmanager
+def transact_heizi_db():
+	connection = psycopg2.connect(**config)
+	cursor = connection.cursor()
+	
+	try:
+		yield cursor
+	except (Exception, psycopg2.DatabaseError) as error:
+		print(error)
+	finally:
+		cursor.close()
+		connection.commit()
+		connection.close()

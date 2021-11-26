@@ -7,28 +7,18 @@ import os
 import numpy as np
 import psycopg2
 import re
-from heizidb import HeiziDb
+from heizidb import transact_heizi_db
 from heiziocr import scan
 from calibrate import calibrate
 
-numregex = re.compile(r'[\s\d]\d\d')
+NUM_REGEX = re.compile(r'[\s\d]\d\d')
+
+INSERT_SQL = 'INSERT INTO heizi.data VALUES (%s, %s, %s);'
 
 def persist(timestamp, key, value):
 	print('persisting', timestamp, key, value)
-	heizidb = None
-	try:
-		heizidb = HeiziDb()
-		cur = heizidb.cur
-
-		insertsql = 'INSERT INTO heizi.data VALUES (%s, %s, %s);'
-		cur.execute(insertsql, (timestamp, key, value))
-
-		heizidb.commit()
-	except (Exception, psycopg2.DatabaseError) as error:
-		print(error)
-	finally:
-		if heizidb is not None:
-			heizidb.close()
+	with transact_heizi_db() as cursor:
+		cursor.execute(INSERT_SQL, (timestamp, key, value))
 
 def readCalibration():
 	if os.path.exists('calibration'):
@@ -82,7 +72,7 @@ try:
 			elif result in ['tag', 'ty ', 'po ', 'pu ']:
 				lastkey = result.strip()
 			elif lastkey:
-				if numregex.match(result):
+				if NUM_REGEX.match(result):
 					persist(timestamp, lastkey, int(result))
 					lasttimes[lastkey] = timestamp
 				lastkey = None
