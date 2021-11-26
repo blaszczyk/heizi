@@ -1,23 +1,17 @@
 #!/usr/bin/python3
-from heizidb import HeiziDb
+from heizidb import query_heizi_db
 from time import sleep
 import os
 import time
 
+SQL_SELECT_LAST = "SELECT * FROM heizi.data ORDER BY time DESC LIMIT 1;"
+
 def querylasttime():
-	heizidb = None
-	try:
-		heizidb = HeiziDb()
-		cur = heizidb.cur
-		selectsql = "SELECT * FROM heizi.data ORDER BY time DESC LIMIT 1;"
-		
-		cur.execute(selectsql)
-		row = cur.fetchone()
+	with query_heizi_db() as cursor:
+		cursor.execute(SQL_SELECT_LAST)
+		row = cursor.fetchone()
 		lasttime = row[0]
 		return lasttime
-	finally:
-		if heizidb is not None:
-			heizidb.close()
 
 print('Starting health watcher...')
 sleep(180)
