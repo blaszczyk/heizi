@@ -31,6 +31,7 @@ def request(path):
 		data = response.read().decode('utf-8')
 		if status > 399:
 			print('request failed for', fullpath)
+			print('status: ' + status)
 			print('error message: ' + data)
 			raise Exception('http response error')
 		return json.loads(data)
@@ -61,12 +62,17 @@ def persist_temerature():
 def crawl():
 	nexttime = time.time()
 	while True:
-		fetchreport()
-		persist_temerature()
-#		printreport()
-
-		nexttime += INTERVAL
-		time.sleep(nexttime - time.time())
+		try:
+			fetchreport()
+			printreport()
+			persist_temerature()
+			currenttime = time.time()
+			while(nexttime < currenttime):
+				nexttime += INTERVAL
+			time.sleep(nexttime - currenttime)
+		except Exception as e:
+			print(e)
+			time.sleep(5)
 
 Thread(target=crawl, daemon=True).start()
 
