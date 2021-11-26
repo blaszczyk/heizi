@@ -7,6 +7,7 @@ import os
 import numpy as np
 import psycopg2
 import re
+import weathercrawl
 from heizidb import transact_heizi_db
 from heiziocr import scan
 from calibrate import calibrate

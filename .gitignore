@@ -5,4 +5,5 @@ calibration
 __pycache__/
 dbconfig.py
 deployconfig.py
+owmconfig.py
 dist/
