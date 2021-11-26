@@ -8,18 +8,11 @@ import numpy as np
 import psycopg2
 import re
 import weathercrawl
-from heizidb import transact_heizi_db
+from heizidb import persist
 from heiziocr import scan
 from calibrate import calibrate
 
 NUM_REGEX = re.compile(r'[\s\d]\d\d')
-
-INSERT_SQL = 'INSERT INTO heizi.data VALUES (%s, %s, %s);'
-
-def persist(timestamp, key, value):
-	print('persisting', timestamp, key, value)
-	with transact_heizi_db() as cursor:
-		cursor.execute(INSERT_SQL, (timestamp, key, value))
 
 def readCalibration():
 	if os.path.exists('calibration'):
@@ -65,7 +58,7 @@ try:
 			print('detected', result)
 
 			if result == 'tur':
-				persist(timestamp, result, None)
+				persist(result, None)
 				lasttur = timestamp
 				lasttimes = newTimes(lasttur)
 			elif result == ' oo':
@@ -74,7 +67,7 @@ try:
 				lastkey = result.strip()
 			elif lastkey:
 				if NUM_REGEX.match(result):
-					persist(timestamp, lastkey, int(result))
+					persist(lastkey, int(result))
 					lasttimes[lastkey] = timestamp
 				lastkey = None
 

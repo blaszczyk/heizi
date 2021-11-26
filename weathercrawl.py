@@ -5,11 +5,9 @@ import datetime
 from owmconfig import *
 import time
 from threading import Thread
-from heizidb import transact_heizi_db
+from heizidb import persist
 
 INTERVAL = 600
-
-INSERT_SQL = 'INSERT INTO heizi.data VALUES (%s, %s, %s);'
 
 #PATHS = ['weather', 'forecast']
 PATHS = ['weather']
@@ -58,11 +56,8 @@ def fetchreport():
 
 def persist_temerature():
 	temp = round(report['weather']['main']['temp'])
-	print('persisting hof', temp)
-	with transact_heizi_db() as cursor:
-		cursor.execute(INSERT_SQL, (time.time(), 'hof', temp))
-	
-	
+	persist('hof', temp)
+
 def crawl():
 	nexttime = time.time()
 	while True:
