@@ -24,11 +24,11 @@ def message(data):
 	if dataAge > 300 and turAge > 300:
 		return ADMIN, 'Detektor fehlerhaft', 'seit %d min.' % int(dataAge/60)
 
-	if po < 65 and turAge > 300 and dtag <= 1 and tag < 150:
+	if po < 60 and turAge > 300 and dtag <= 1 and tag < 150:
 		tempus = 'wird' if dpo < -0.2 else 'ist'
 		return ALERT, 'Speicher %s kalt' % tempus, 'Temperatur %d°C' % po
 
-	if pu > 80 and dpu >= 0:
+	if pu > 85 and dpu >= 0:
 		return ALERT, 'Speicher heiss', 'Temperatur %d°C' % pu
 
 	if tag > 280:
