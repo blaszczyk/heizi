@@ -57,7 +57,7 @@ def fetchreport():
 
 def persist_temerature():
 	temp = round(report['weather']['main']['temp'])
-	persist('hof', temp)
+	persist('owm', temp)
 
 def crawl():
 	nexttime = time.time()
@@ -66,6 +66,7 @@ def crawl():
 			fetchreport()
 			printreport()
 			persist_temerature()
+			
 			currenttime = time.time()
 			while(nexttime < currenttime):
 				nexttime += INTERVAL

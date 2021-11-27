@@ -7,8 +7,10 @@ from heizibi import attach_message
 import urllib.parse
 
 SQL_SELECT_LAST_RANGE = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'
-SQL_SELECT_LAST_TIME = 'SELECT time FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;'
+SQL_SELECT_LAST_TIME = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 1;'
 SQL_SELECT_RANGE = 'SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;'
+
+HEIZI_KEYS = ['tag', 'ty', 'po', 'pu']
 
 def slope(rows):
 	t0 = rows[0][0]
@@ -35,22 +37,24 @@ def querylast():
 	with query_heizi_db() as cursor:
 		result = {}
 		
-		mintime = evalkey('tag', cursor, result)
-		mintime = min(mintime, evalkey('ty', cursor, result))
-		mintime = min(mintime, evalkey('po', cursor, result))
-		mintime = min(mintime, evalkey('pu', cursor, result))
+		mintimes = [evalkey(key, cursor, result) for key in HEIZI_KEYS]
+		mintime = min(mintimes)
 		result['time'] = mintime
 
 		cursor.execute(SQL_SELECT_LAST_TIME, ('tur',))
 		row = cursor.fetchone()
 		result['tur'] = row[0]
 
+		cursor.execute(SQL_SELECT_LAST_TIME, ('owm',))
+		row = cursor.fetchone()
+		result['owm'] = row[1]
+
 		attach_message(result)
 		return result
 
 def queryrange(mintime, maxtime):
 	with query_heizi_db() as cursor:
-		result = {'tag': [], 'ty': [], 'po': [], 'pu': [], 'tur': []}
+		result = {'tag': [], 'ty': [], 'po': [], 'pu': [], 'tur': [], 'owm': []}
 
 		cursor.execute(SQL_SELECT_RANGE, (mintime, maxtime,))
 		for row in cursor.fetchall():
