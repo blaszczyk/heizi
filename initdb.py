@@ -1,15 +1,6 @@
 #!/usr/bin/python3
-from heizidb import HeiziDb
+from heizidb import transact_heizi_db
 
-createsql = 'CREATE SCHEMA heizi; CREATE TABLE heizi.data (time INTEGER PRIMARY KEY , key VARCHAR(3), value INTEGER );'
-
-heizidb = None
-try:
-	heizidb = HeiziDb()
-	cur = heizidb.cur
-
-	cur.execute(createsql)
-	heizidb.commit()
-finally:
-	if heizidb is not None:
-		heizidb.close()
+SQL_CREATE = 'CREATE SCHEMA heizi; CREATE TABLE heizi.data (time INTEGER PRIMARY KEY , key VARCHAR(3), value INTEGER );'
+with transact_heizi_db() as cursor:
+	cursor.execute(SQL_CREATE)
