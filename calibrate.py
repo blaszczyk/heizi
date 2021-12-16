@@ -25,8 +25,8 @@ def riseup(image, ref, initscale, initacc, initcali, step):
 
 def checkscales(image, ref):
 	acc, cali = findtemplate(image, ref, 1)
-	scale = 1
-	if acc > 0.6:
+	scale = 1.1
+	if acc > 0.35:
 		scale, acc, cali = riseup(image, ref, scale, acc, cali, 0.05)
 		scale, acc, cali = riseup(image, ref, scale, acc, cali, -0.05)
 		scale, acc, cali = riseup(image, ref, scale, acc, cali, 0.01)
