@@ -76,6 +76,10 @@ try:
 				lastkey = 'tag'
 			elif result in ['tag', 'ty ', 'po ', 'pu ']:
 				lastkey = result.strip()
+			elif result == ' o ':
+				lastkey = 'po'
+			elif result == ' u ':
+				lastkey = 'pu'
 			elif lastkey:
 				if NUM_REGEX.match(result):
 					persist(lastkey, int(result))
