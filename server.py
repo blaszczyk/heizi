@@ -12,6 +12,7 @@ SQL_SELECT_LAST_TIME = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER 
 SQL_SELECT_RANGE = 'SELECT * FROM heizi.data WHERE time >= %s AND time <= %s ORDER BY time ASC;'
 
 HEIZI_KEYS = ['tag', 'ty', 'po', 'pu']
+SERVER_ADDRESS = ('', 4321)
 
 def slope(rows):
 	t0 = rows[0][0]
@@ -70,37 +71,42 @@ def queryrange(mintime, maxtime):
 		return result
 
 class Server(BaseHTTPRequestHandler):
-	def _set_response(self):
-		self.send_response(200)
+
+	def _respond(self, status, body):
+		self.send_response(status)
 		self.send_header('Content-type', 'application/json')
 		self.send_header('Access-Control-Allow-Origin', '*')
 		self.end_headers()
+		self.wfile.write(bytes(body, 'utf-8'))
 
 	def do_GET(self):
-		self._set_response()
 		parsedpath = urllib.parse.urlparse(self.path)
 		path = parsedpath.path
 		query = urllib.parse.parse_qs(parsedpath.query)
-		response = 'Hello Heizi!'
-
+		body = 'Hello Heizi!'
+		status = 200
 		if path == '/latest':
 			data = querylast()
-			response = json.dumps(data)
+			body = json.dumps(data)
 
 		elif path == '/range':
 			maxtime = int(query['maxtime'][0]) if 'maxtime' in query else int(time.time())
 			mintime = int(query['mintime'][0]) if 'mintime' in query else maxtime - 10800
 			data = queryrange(mintime, maxtime)
-			response = json.dumps(data)
+			body = json.dumps(data)
 
 		elif path == '/ping':
-			response = '"pong"'
+			body = '"pong"'
 
-		self.wfile.write(bytes(response, 'utf-8'))
-		
+		elif path.startswith('/owm/'):
+			key = path[5:]
+			if key in REPORT:
+				body = json.dumps(REPORT[key])
+			else:
+				status = 404
+		self._respond(status, body)
 
-server_address = ('', 4321)
-httpd = HTTPServer(server_address, Server)
+httpd = HTTPServer(SERVER_ADDRESS, Server)
 print('Starting http...')
 try:
 	httpd.serve_forever()
