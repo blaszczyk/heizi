@@ -5,16 +5,14 @@ import datetime
 from owmconfig import *
 import time
 from threading import Thread
-from heizidb import persist
 
 INTERVAL = 600
 
-#PATHS = ['weather', 'forecast']
-PATHS = ['weather']
+PATHS = ['weather', 'forecast']
 
-report = {}
+REPORT = {'time': 0}
 for path in PATHS:
-	report[path] = {}
+	REPORT[path] = {}
 
 def request(path):
 	connection = http.client.HTTPSConnection('api.openweathermap.org')
@@ -46,18 +44,15 @@ def printitem(item):
 
 def printreport():
 	print('report from', datetime.datetime.fromtimestamp(time.time()).strftime("%b %d %Y %H:%M:%S"))
-	printitem(report['weather'])
-#	for item in report['forecast']['list']:
-#		printitem(item)
+	printitem(REPORT['weather'])
+	for item in REPORT['forecast']['list']:
+		printitem(item)
 	
 def fetchreport():
+	REPORT['time'] = time.time()
 	for path in PATHS:
 		response = request(path)
-		report[path] = response
-
-def persist_temerature():
-	temp = round(report['weather']['main']['temp'])
-	persist('owm', temp)
+		REPORT[path] = response
 
 def crawl():
 	nexttime = time.time()
@@ -65,7 +60,6 @@ def crawl():
 		try:
 			fetchreport()
 			printreport()
-			persist_temerature()
 			
 			currenttime = time.time()
 			while(nexttime < currenttime):

@@ -4,6 +4,7 @@ import json
 import time
 from heizidb import query_heizi_db
 from heizibi import attach_message
+from weathercrawl import REPORT
 import urllib.parse
 
 SQL_SELECT_LAST_RANGE = 'SELECT time, value FROM heizi.data WHERE key = %s ORDER BY time DESC LIMIT 25;'

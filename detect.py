@@ -7,7 +7,7 @@ import os
 import numpy as np
 import psycopg2
 import re
-import weathercrawl
+from weathercrawl import REPORT
 from heizidb import persist
 from heiziocr import scan
 from calibrate import calibrate
@@ -41,8 +41,15 @@ try:
 	lasttur = int(time.time())
 	lasttimes = newTimes(lasttur)
 	lastcalistart = None
+	lastowm = 0
 
 	while True:
+		owmtime = REPORT['time']
+		if lastowm < owmtime:
+			lastowm = owmtime
+			temp = round(REPORT['weather']['main']['temp'])
+			persist('owm', temp)
+		
 		sleep(1)
 		timestamp = int(time.time())
 		file = 'img/' + str(timestamp) + '.jpg'
