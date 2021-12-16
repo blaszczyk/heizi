@@ -45,6 +45,7 @@ def querylast():
 		cursor.execute(SQL_SELECT_LAST_TIME, ('tur',))
 		row = cursor.fetchone()
 		result['tur'] = row[0]
+		result['vent'] = row[1] > 0
 
 		cursor.execute(SQL_SELECT_LAST_TIME, ('owm',))
 		row = cursor.fetchone()
@@ -62,9 +63,7 @@ def queryrange(mintime, maxtime):
 			time = row[0]
 			key = row[1].strip()
 			value = row[2]
-			if key == 'tur':
-				result[key].append(time)
-			elif key in result:
+			if key in result:
 				dataset = [time, value]
 				result[key].append(dataset)
 

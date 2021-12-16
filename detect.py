@@ -64,11 +64,15 @@ try:
 			result = scan(file, cali)
 			print('detected', result)
 
-			if result == 'tur':
-				persist(result, None)
+			if result == ' oo': # == ' on'
+				persist('tur', 1)
 				lasttur = timestamp
 				lasttimes = newTimes(lasttur)
-			elif result == ' oo':
+				lastkey = 'tag'
+			elif result == 'off':
+				persist('tur', 0)
+				lasttur = timestamp
+				lasttimes = newTimes(lasttur)
 				lastkey = 'tag'
 			elif result in ['tag', 'ty ', 'po ', 'pu ']:
 				lastkey = result.strip()

@@ -17,6 +17,7 @@ def message(data):
 	dpo = data['dpo']
 	pu = data['pu']
 	tur = data['tur']
+	vent = data['vent']
 	time = data['time']
 	turAge = timenow - tur
 	dataAge = timenow - time
@@ -35,9 +36,10 @@ def message(data):
 		return ALERT, 'Ofen heiss', 'Temperatur %d°C' % tag
 
 	if tur > time:
+		ventstate = 'Ventilator ' + ('an' if vent else 'aus')
 		if dataAge > 1800:
 			return ALERT, 'Tür auf seit %d min.' % int(dataAge/60), 'Was ist da los?'
 		else:
-			return INFO, 'Tuer auf', ''
+			return INFO, 'Tuer auf ' + ventstate, ''
 
 	return None, None, None

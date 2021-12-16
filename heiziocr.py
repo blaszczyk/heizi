@@ -40,6 +40,8 @@ def detect(digit):
 			return 'u'
 		if bs == (0,0,0,1,1,0):
 			return 'r'
+		if bs == (1,1,0,1,1,0):
+			return 'f'
 		if bs == (1,1,1,0,1,1):
 			return '0'
 		if bs == (0,0,1,0,0,1):
