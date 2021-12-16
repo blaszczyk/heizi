@@ -1,10 +1,14 @@
 import subprocess
-from deployconfig import sshtarget
+from deployconfig import *
+import sys
 
-prod_files = ['server', 'heizidb', 'detect', 'weathercrawl', 'heizibi', 'heiziocr', 'calibrate', 'healthwatch']
+PROD_FILES = ['server', 'heizidb', 'detect', 'weathercrawl', 'heizibi', 'heiziocr', 'calibrate', 'healthwatch', 'dbbackup']
 
 print('deploying to', sshtarget)
-for file in prod_files:
+for file in PROD_FILES:
 	srcpath = file + '.py'
 	print('deploying', srcpath)
 	subprocess.run(['scp', srcpath, sshtarget])
+
+if len(sys.argv) > 1 and sys.argv[1] == 'reboot':
+	subprocess.run(['ssh', sshhost, 'sudo reboot'])
