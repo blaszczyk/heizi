@@ -7,3 +7,5 @@ dbconfig.py
 deployconfig.py
 owmconfig.py
 dist/
+*test*
+dbdump/
